@@ -43,16 +43,23 @@ func main() {
 
 	router.Use(sessions.Sessions("mySession", store))
 
+	// -- Url groups
 	api := router.Group("/api")
 
 	apiAuth := api.Group("/auth")
 	apiAuth.Use(middleware.Authentication())
+	// ---
 
+	// --- Handler definitions ---
 	user := handler.NewUserHandler()
+	product := handler.NewProductHandler()
+	// ---
 
+	// --- Set trusted proxies
 	if err = router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatalf("error: %s\n", err.Error())
 	}
+	// ---
 
 	// --- Admin pages ---
 	router.Use(addPage("/admin", "./public/pages/admin"))
@@ -65,6 +72,10 @@ func main() {
 	apiAuth.POST("/editProfile", user.UpdateHandler)
 	apiAuth.POST("/newPass", user.NewPassHandler)
 	apiAuth.GET("/logout", user.LogoutHandler)
+	// ---
+
+	// --- Product handling ---
+	api.GET("/products", product.AllProductsHandler)
 	// ---
 
 	// --- Test endpoints ---

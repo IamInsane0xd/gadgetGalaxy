@@ -38,15 +38,24 @@ func ConnectToDb(user string, pass string, addr string, dbName string) error {
 	return nil
 }
 
-type User struct {
-	Username  string `json:"username"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	PhoneNum  string `json:"phoneNum"`
-	Password  string `json:"password"`
-	BirthDate string `json:"birthDate"`
-}
+type (
+	User struct {
+		Username  string `json:"username"`
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+		Email     string `json:"email"`
+		PhoneNum  string `json:"phoneNum"`
+		Password  string `json:"password"`
+		BirthDate string `json:"birthDate"`
+	}
+
+	Product struct {
+		Name        string  `json:"name"`
+		Price       float64 `json:"price"`
+		Amount      int     `json:"amount"`
+		Description string  `json:"description"`
+	}
+)
 
 func RegisterUser(user User) (sql.Result, error) {
 	return db.Exec("INSERT INTO users (username, first_name, last_name, email, phone_num, password, birth_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -134,4 +143,31 @@ func updateUserPhoneNum(username string, phoneNum string) (sql.Result, error) {
 
 func UpdateUserPassword(username string, password string) (sql.Result, error) {
 	return db.Exec("UPDATE users SET password = ? WHERE username LIKE ?", password, username)
+}
+
+func SelectAllProducts() ([]Product, error) {
+	rows, err := db.Query("SELECT * FROM products")
+
+	if err != nil {
+		return nil, err
+	}
+
+	var products []Product
+
+	for rows.Next() {
+		var product Product
+
+		err = rows.Scan(&product.Name,
+			&product.Price,
+			&product.Amount,
+			&product.Description)
+
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
 }
